@@ -21,3 +21,6 @@ app.add_middleware(
 @app.get("/schema")
 def read_schema():
     return get_schema_metadata()
+
+
+
