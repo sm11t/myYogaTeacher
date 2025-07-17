@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -7,6 +7,7 @@ from .schema_ingest import get_schema_metadata
 from .nlu import extract_intent
 from .sql_builder import build_sql
 from .db import SessionLocal
+from .asr import transcribe_audio
 
 app = FastAPI(title="MyYogaTeacher Reporting API")
 
@@ -19,7 +20,7 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     text: str
-    teacher_id: int | None = None   # ← NEW
+    teacher_id: int | None = None
 
 @app.post("/query")
 def run_query(req: QueryRequest):
@@ -37,3 +38,21 @@ def run_query(req: QueryRequest):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/whisper")
+async def whisper_endpoint(file: UploadFile = File(...)):
+    """
+    Accepts an audio file, runs it through Whisper ASR,
+    and returns the transcript.
+    """
+    try:
+        contents = await file.read()
+        tmp_path = f"/tmp/{file.filename}"
+        with open(tmp_path, "wb") as f:
+            f.write(contents)
+
+        transcript = transcribe_audio(tmp_path)
+        return {"transcript": transcript}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ASR error: {e}")

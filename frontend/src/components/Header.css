@@ -1,0 +1,37 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-light);
+}
+
+.header-logo {
+  height: 32px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  color: var(--text-main);
+}
+
+.header-user strong {
+  color: var(--accent);
+}
+
+.logout-button {
+  margin-left: 16px;
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-button:hover {
+  background: var(--text-muted);
+  color: var(--bg-dark);
+}
