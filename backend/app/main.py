@@ -2,12 +2,17 @@ from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
+import logging
 
 from .schema_ingest import get_schema_metadata
 from .nlu import extract_intent
 from .sql_builder import build_sql
 from .db import SessionLocal
 from .asr import transcribe_audio
+
+# Set up logger for incoming queries and generated SQL
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.INFO)
 
 app = FastAPI(title="MyYogaTeacher Reporting API")
 
@@ -25,11 +30,16 @@ class QueryRequest(BaseModel):
 @app.post("/query")
 def run_query(req: QueryRequest):
     try:
+        # Log the raw incoming natural-language query
+        logger.info(f"📥 Incoming natural-language query: {req.text!r}")
+
         intent = extract_intent(req.text)
         if req.teacher_id is not None:
             intent["teacher_id"] = req.teacher_id
 
         sql = build_sql(intent)
+        # Log the generated SQL statement
+        logger.info(f"🔨 Generated SQL: {sql}")
 
         with SessionLocal() as session:
             rows = session.execute(text(sql)).fetchall()
